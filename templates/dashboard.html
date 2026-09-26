@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - StockFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <h2>Dashboard Geral</h2>
+        <p>Visão em tempo real do estoque de SSDs</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('entradas') }}" class="btn btn-primary" aria-label="Acessar página de Nova Entrada">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Nova Entrada
+        </a>
+        <a href="{{ url_for('saidas') }}" class="btn btn-secondary" aria-label="Acessar página de Registrar Saída">
+            <i class="fa-solid fa-minus" aria-hidden="true"></i> Registrar Saída
+        </a>
+        <a href="{{ url_for('usuarios') }}" class="btn btn-secondary" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: #a5b4fc;" aria-label="Acessar página de Gerenciar Usuários">
+            <i class="fa-solid fa-users-gear" aria-hidden="true"></i> Gerenciar Usuários
+        </a>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="dashboard-grid">
+    <!-- Stat 1: Total em Estoque -->
+    <div class="stat-card" style="--card-accent: var(--success);">
+        <div class="stat-header">
+            <span>Total em Estoque</span>
+            <div class="stat-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></div>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_stock }}</div>
+            <span class="stat-desc">unidades disponíveis</span>
+        </div>
+    </div>
+
+    <!-- Stat 2: Total de Saídas -->
+    <div class="stat-card" style="--card-accent: var(--warning);">
+        <div class="stat-header">
+            <span>Total de Saídas</span>
+            <div class="stat-icon"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></div>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_exits }}</div>
+            <span class="stat-desc">unidades expedidas</span>
+        </div>
+    </div>
+
+    <!-- Stat 3: SSDs SATA -->
+    <div class="stat-card" style="--card-accent: var(--accent-sata);">
+        <div class="stat-header">
+            <span>SSDs SATA</span>
+            <div class="stat-icon"><i class="fa-solid fa-compact-disc" aria-hidden="true"></i></div>
+        </div>
+        <div>
+            <div class="stat-value">{{ sata_qty }}</div>
+            <span class="stat-desc">unidades em estoque</span>
+        </div>
+    </div>
+
+    <!-- Stat 4: SSDs NVMe -->
+    <div class="stat-card" style="--card-accent: var(--accent-nvme);">
+        <div class="stat-header">
+            <span>SSDs NVMe</span>
+            <div class="stat-icon"><i class="fa-solid fa-microchip" aria-hidden="true"></i></div>
+        </div>
+        <div>
+            <div class="stat-value">{{ nvme_qty }}</div>
+            <span class="stat-desc">unidades em estoque</span>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Table -->
+<div class="glass-panel">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 class="panel-title" style="margin-bottom: 0;">
+            <i class="fa-solid fa-list-check" style="color: var(--primary);" aria-hidden="true"></i>
+            Status de Estoque por Produto
+        </h3>
+        
+        <!-- Live Search Field -->
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;" aria-hidden="true"></i>
+            <input type="text" id="dashboardSearch" class="form-input" style="padding-left: 2.5rem; font-size: 0.85rem;" placeholder="Buscar por marca, tipo ou tamanho..." aria-label="Buscar produtos por marca, tipo ou tamanho">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="custom-table" id="dashboardTable">
+            <thead>
+                <tr>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Tamanho</th>
+                    <th scope="col" style="text-align: center;">Quantidade Atual</th>
+                    <th scope="col" style="text-align: center;">Quantidade Saídas</th>
+                    <th scope="col" style="text-align: center;">Status</th>
+                </tr>
+            </thead>
+            <tbody aria-live="polite">
+                {% if products %}
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                {% if product.ssd_type == 'SATA' %}
+                                    <span class="badge badge-sata">SATA</span>
+                                {% else %}
+                                    <span class="badge badge-nvme">NVMe</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: 600;">{{ product.brand }}</td>
+                            <td>{{ product.size if product.size else '-' }}</td>
+                            <td style="text-align: center; font-weight: 700; font-size: 1.05rem;">{{ product.quantity }}</td>
+                            <td style="text-align: center; color: var(--text-muted);">{{ product.total_exited }}</td>
+                            <td style="text-align: center;">
+                                {% if product.quantity == 0 %}
+                                    <span class="badge badge-stock-out">Esgotado</span>
+                                {% elif product.quantity <= 3 %}
+                                    <span class="badge badge-stock-low">Baixo Estoque</span>
+                                {% else %}
+                                    <span class="badge badge-stock-ok">Normal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="no-results-row">
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                            <i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.5;" aria-hidden="true"></i>
+                            Nenhum produto cadastrado no estoque ainda. Faça uma entrada para começar!
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Simple table searching
+    document.getElementById('dashboardSearch')?.addEventListener('keyup', function(e) {
+        const text = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#dashboardTable tbody tr:not(.no-results-row)');
+        let foundAny = false;
+        
+        rows.forEach(row => {
+            const content = row.textContent.toLowerCase();
+            if (content.includes(text)) {
+                row.style.display = '';
+                foundAny = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show/hide empty state message if no rows match
+        let noResultsRow = document.querySelector('.no-results-row');
+        if (!foundAny && rows.length > 0) {
+            if (!noResultsRow) {
+                const tbody = document.querySelector('#dashboardTable tbody');
+                noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'no-results-row';
+                noResultsRow.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">Nenhum produto correspondente encontrado.</td>`;
+                tbody.appendChild(noResultsRow);
+            } else {
+                noResultsRow.style.display = '';
+            }
+        } else if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

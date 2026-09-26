@@ -1,0 +1,11 @@
+{
+  "name": "stockflow-accessibility-tests",
+  "version": "1.0.0",
+  "description": "Playwright tests for StockFlow accessibility widget",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0"
+  }
+}

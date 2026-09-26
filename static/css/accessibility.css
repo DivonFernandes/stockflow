@@ -1,0 +1,191 @@
+/* ==========================================================================
+   Configurações de Acessibilidade
+   ========================================================================== */
+
+/* 1. Fonte Grande */
+body.fonte-grande {
+    font-size: 110%; /* Aumenta a base, afetando elementos que usam em/rem */
+}
+body.fonte-grande h1 { font-size: 2.2rem; }
+body.fonte-grande h2 { font-size: 1.8rem; }
+body.fonte-grande h3 { font-size: 1.5rem; }
+body.fonte-grande p, body.fonte-grande span, body.fonte-grande a, body.fonte-grande div, body.fonte-grande li {
+    font-size: 1.1rem;
+}
+
+/* 2. Fonte para Dislexia */
+body.fonte-dislexia, 
+body.fonte-dislexia * {
+    font-family: 'Comic Sans MS', 'Arial', sans-serif !important;
+    letter-spacing: 0.5px !important;
+    word-spacing: 1px !important;
+    line-height: 1.6 !important;
+}
+
+/* 3. Redução de Animações / Sem Efeitos */
+body.sem-animacao,
+body.sem-animacao * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+}
+
+/* 4. Alto Contraste */
+body.alto-contraste {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+}
+
+body.alto-contraste .sidebar,
+body.alto-contraste .main-content,
+body.alto-contraste .card,
+body.alto-contraste header,
+body.alto-contraste footer,
+body.alto-contraste .modal-content,
+body.alto-contraste .alert-banner {
+    background-color: #121212 !important;
+    color: #FFFFFF !important;
+    border-color: #FFFF00 !important;
+}
+
+body.alto-contraste a, 
+body.alto-contraste .sidebar-link {
+    color: #FFFF00 !important;
+}
+
+body.alto-contraste a:hover,
+body.alto-contraste .sidebar-link:hover,
+body.alto-contraste .sidebar-link.active {
+    background-color: #FFFF00 !important;
+    color: #000000 !important;
+}
+
+body.alto-contraste button,
+body.alto-contraste .btn {
+    background-color: #000000 !important;
+    color: #FFFF00 !important;
+    border: 2px solid #FFFF00 !important;
+}
+
+body.alto-contraste button:hover,
+body.alto-contraste .btn:hover {
+    background-color: #FFFF00 !important;
+    color: #000000 !important;
+}
+
+body.alto-contraste input,
+body.alto-contraste select,
+body.alto-contraste textarea,
+body.alto-contraste table th,
+body.alto-contraste table td {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #FFFF00 !important;
+}
+
+/* ==========================================================================
+   Painel de Acessibilidade Flutuante
+   ========================================================================== */
+
+.accessibility-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #4F46E5;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    border: none;
+}
+
+.accessibility-btn:hover {
+    transform: scale(1.1);
+    background-color: #4338ca;
+}
+
+.accessibility-panel {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background-color: white;
+    border-radius: 12px;
+    width: 250px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    z-index: 999;
+    padding: 15px;
+    display: none; /* Escondido por padrão */
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #e5e7eb;
+}
+
+.accessibility-panel.active {
+    display: flex;
+}
+
+.accessibility-panel h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #1f2937;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.accessibility-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 14px;
+    color: #374151;
+}
+
+.accessibility-option:hover {
+    background-color: #f3f4f6;
+}
+
+.accessibility-option i {
+    font-size: 18px;
+    color: #4F46E5;
+}
+
+.accessibility-option.ativo {
+    background-color: #e0e7ff;
+    border-color: #4F46E5;
+    font-weight: bold;
+}
+
+body.alto-contraste .accessibility-panel {
+    background-color: #000000;
+    border: 1px solid #FFFF00;
+}
+body.alto-contraste .accessibility-panel h3,
+body.alto-contraste .accessibility-option {
+    color: #FFFFFF;
+}
+body.alto-contraste .accessibility-option {
+    background-color: #121212;
+    border-color: #FFFF00;
+}
+body.alto-contraste .accessibility-option.ativo {
+    background-color: #FFFF00;
+    color: #000000;
+}
+body.alto-contraste .accessibility-option i {
+    color: inherit;
+}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Saída - StockFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h2>Editar Saída de Produto</h2>
+    </div>
+</div>
+
+<div class="glass-panel">
+    <form action="{{ url_for('edit_exit', exit_id=exit.id) }}" method="POST" autocomplete="off" id="editExitForm" role="form" aria-label="Formulário de Edição de Saída de Produto">
+        <div class="form-grid">
+            <!-- Data de Saída -->
+            <div class="form-group">
+                <label for="exit_date" class="form-label">Data de Saída</label>
+                <input type="date" id="exit_date" name="exit_date" class="form-input" required value="{{ exit.exit_date }}">
+            </div>
+            <!-- Tipo de SSD -->
+            <div class="form-group">
+                <label for="ssd_type" class="form-label">Tipo de SSD</label>
+                <select id="ssd_type" name="ssd_type" class="form-select" required>
+                    <option value="" disabled>Selecione o tipo</option>
+                    <option value="SATA" {% if exit.ssd_type == 'SATA' %}selected{% endif %}>SATA (2.5" ou M.2)</option>
+                    <option value="NVMe" {% if exit.ssd_type == 'NVMe' %}selected{% endif %}>NVMe (M.2 PCIe)</option>
+                </select>
+            </div>
+            <!-- Marca -->
+            <div class="form-group">
+                <label for="brand" class="form-label">Marca</label>
+                <input type="text" id="brand" name="brand" class="form-input" placeholder="Ex: Kingston, Crucial, XPG" required value="{{ exit.brand }}">
+            </div>
+            <!-- Tamanho (Opcional) -->
+            <div class="form-group">
+                <label for="size" class="form-label">Tamanho (Opcional)</label>
+                <input type="text" id="size" name="size" class="form-input" placeholder="Ex: 240GB, 480GB, 1TB" value="{{ exit.size }}">
+            </div>
+            <!-- Quantidade -->
+            <div class="form-group">
+                <label for="quantity" class="form-label">Quantidade</label>
+                <input type="number" id="quantity" name="quantity" class="form-input" min="1" required value="{{ exit.quantity }}">
+            </div>
+            <!-- Fornecedor -->
+            <div class="form-group">
+                <label for="supplier" class="form-label">Fornecedor</label>
+                <input type="text" id="supplier" name="supplier" class="form-input" placeholder="Fornecedor de origem" required value="{{ exit.supplier }}">
+            </div>
+            <!-- Cliente -->
+            <div class="form-group">
+                <label for="client" class="form-label">Cliente</label>
+                <input type="text" id="client" name="client" class="form-input" placeholder="Nome do Cliente" required value="{{ exit.client }}">
+            </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-save" aria-hidden="true"></i> Atualizar Saída
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Ensure date input has correct format (YYYY-MM-DD)
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('exit_date');
+        if (dateInput && dateInput.value) {
+            const parts = dateInput.value.split('-');
+            if (parts.length === 3) {
+                dateInput.value = parts.join('-');
+            }
+        }
+    });
+</script>
+{% endblock %}

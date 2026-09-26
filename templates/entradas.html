@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Entradas de Produtos - StockFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <h2>Entradas de Produtos</h2>
+        <p>Cadastre novas cargas e acompanhe o histórico de recebimento</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('export_excel', report_type='entradas') }}" class="btn btn-success" aria-label="Exportar histórico de entradas para planilha Excel">
+            <i class="fa-solid fa-file-excel" aria-hidden="true"></i> Exportar Excel
+        </a>
+        <a href="{{ url_for('export_pdf', report_type='entradas') }}" class="btn btn-danger" aria-label="Exportar histórico de entradas para documento PDF">
+            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Exportar PDF
+        </a>
+    </div>
+</div>
+
+<!-- Form Panel -->
+<div class="glass-panel">
+    <h3 class="panel-title">
+        <i class="fa-solid fa-circle-plus" style="color: var(--success);" aria-hidden="true"></i>
+        Nova Entrada de SSD
+    </h3>
+    
+    <form action="{{ url_for('entradas') }}" method="POST" autocomplete="off" id="entryForm" role="form" aria-label="Formulário de Nova Entrada de Produto">
+        <div class="form-grid">
+            <!-- Data de Entrada -->
+            <div class="form-group">
+                <label for="entry_date" class="form-label">Data de Entrada</label>
+                <input type="date" id="entry_date" name="entry_date" class="form-input" required>
+            </div>
+            
+            <!-- Tipo de SSD -->
+            <div class="form-group">
+                <label for="ssd_type" class="form-label">Tipo de SSD</label>
+                <select id="ssd_type" name="ssd_type" class="form-select" required>
+                    <option value="" disabled selected>Selecione o tipo</option>
+                    <option value="SATA">SATA (2.5" ou M.2)</option>
+                    <option value="NVMe">NVMe (M.2 PCIe)</option>
+                </select>
+            </div>
+            
+            <!-- Marca -->
+            <div class="form-group">
+                <label for="brand" class="form-label">Marca</label>
+                <input type="text" id="brand" name="brand" class="form-input" placeholder="Ex: Kingston, Crucial, XPG" required>
+            </div>
+            
+            <!-- Tamanho (Opcional) -->
+            <div class="form-group">
+                <label for="size" class="form-label">Tamanho (Opcional)</label>
+                <input type="text" id="size" name="size" class="form-input" placeholder="Ex: 240GB, 480GB, 1TB">
+            </div>
+            
+            <!-- Quantidade -->
+            <div class="form-group">
+                <label for="quantity" class="form-label">Quantidade</label>
+                <input type="number" id="quantity" name="quantity" class="form-input" min="1" placeholder="Qtd de itens" required>
+            </div>
+            
+            <!-- Fornecedor -->
+            <div class="form-group">
+                <label for="supplier" class="form-label">Fornecedor</label>
+                <input type="text" id="supplier" name="supplier" class="form-input" placeholder="Nome do Fornecedor" required>
+            </div>
+            
+            <!-- Preço Unitário -->
+            <div class="form-group">
+                <label for="price" class="form-label">Preço Unitário (R$)</label>
+                <input type="number" id="price" name="price" class="form-input" min="0.01" step="0.01" placeholder="Ex: 159.90" required>
+            </div>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+            <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-save" aria-hidden="true"></i> Registrar Entrada
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- History Panel -->
+<div class="glass-panel">
+    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h3 class="panel-title" style="margin-bottom: 0;">
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);" aria-hidden="true"></i>
+            Histórico de Entradas
+        </h3>
+        
+        <div class="search-input-wrapper">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;" aria-hidden="true"></i>
+            <input type="text" id="entriesSearch" class="form-input" style="padding-left: 2.5rem; font-size: 0.85rem;" placeholder="Buscar histórico de entradas..." aria-label="Buscar no histórico de entradas">
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="custom-table" id="entriesTable">
+            <thead>
+                <tr>
+                    <th scope="col">Data</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Marca</th>
+                    <th scope="col">Tamanho</th>
+                    <th scope="col" style="text-align: center;">Quantidade</th>
+                    <th scope="col">Fornecedor</th>
+                    <th scope="col" style="text-align: right;">Unitário (R$)</th>
+                    <th scope="col" style="text-align: right;">Total (R$)</th>
+                    <th scope="col" style="text-align: center;">Ações</th>
+                </tr>
+            </thead>
+            <tbody aria-live="polite">
+                {% if entries %}
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.entry_date }}</td>
+                            <td>
+                                {% if entry.ssd_type == 'SATA' %}
+                                    <span class="badge badge-sata">SATA</span>
+                                {% else %}
+                                    <span class="badge badge-nvme">NVMe</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: 600;">{{ entry.brand }}</td>
+                            <td>{{ entry.size if entry.size else '-' }}</td>
+                            <td style="text-align: center; font-weight: 600;">{{ entry.quantity }}</td>
+                            <td>{{ entry.supplier }}</td>
+                            <td style="text-align: right;">R$ {{ "%.2f"|format(entry.price) }}</td>
+                            <td style="text-align: right; font-weight: 600; color: var(--success);">R$ {{ "%.2f"|format(entry.price * entry.quantity) }}</td>
+                            <!-- Actions -->
+                            <td style="text-align: center;">
+                                <a href="{{ url_for('edit_entry', entry_id=entry.id) }}" class="btn btn-sm btn-primary" title="Editar" aria-label="Editar entrada de {{ entry.quantity }} unidades de SSD {{ entry.ssd_type }} {{ entry.brand }} de fornecedor {{ entry.supplier }}"><i class="fa-solid fa-pen" aria-hidden="true"></i></a>
+                                <form action="{{ url_for('delete_entry', entry_id=entry.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Excluir" onclick="return confirm('Confirma exclusão desta entrada?');" aria-label="Excluir entrada de {{ entry.quantity }} unidades de SSD {{ entry.ssd_type }} {{ entry.brand }} de fornecedor {{ entry.supplier }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="no-results-row">
+                        <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                            <i class="fa-solid fa-receipt" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; opacity: 0.5;" aria-hidden="true"></i>
+                            Nenhuma entrada registrada no histórico.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set default date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('entry_date').value = today;
+    });
+
+    // Entries Table Search
+    document.getElementById('entriesSearch')?.addEventListener('keyup', function(e) {
+        const text = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('#entriesTable tbody tr:not(.no-results-row)');
+        let foundAny = false;
+        
+        rows.forEach(row => {
+            const content = row.textContent.toLowerCase();
+            if (content.includes(text)) {
+                row.style.display = '';
+                foundAny = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        let noResultsRow = document.querySelector('#entriesTable .no-results-row');
+        if (!foundAny && rows.length > 0) {
+            if (!noResultsRow) {
+                const tbody = document.querySelector('#entriesTable tbody');
+                noResultsRow = document.createElement('tr');
+                noResultsRow.className = 'no-results-row';
+                noResultsRow.innerHTML = `<td colspan="8" style="text-align: center; color: var(--text-muted); padding: 3rem;">Nenhuma entrada correspondente encontrada.</td>`;
+                tbody.appendChild(noResultsRow);
+            } else {
+                noResultsRow.style.display = '';
+            }
+        } else if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}

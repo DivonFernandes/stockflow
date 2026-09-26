@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Usuários - StockFlow{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-title">
+        <h2>Controle de Usuários e Acessos</h2>
+        <p>Cadastre e modifique os operadores do sistema</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" aria-label="Voltar para a página do Dashboard Geral">
+            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i> Voltar ao Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- User Management Panel -->
+<div class="glass-panel">
+    <div class="panel-header" style="margin-bottom: 1.5rem;">
+        <h3 class="panel-title" style="margin-bottom: 0;">
+            <i class="fa-solid fa-users-gear" style="color: var(--primary);" aria-hidden="true"></i>
+            Gerenciamento de Usuários e Acessos
+        </h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; flex-wrap: wrap;" class="user-management-grid">
+        <!-- Users List -->
+        <div>
+            <h4 style="margin-bottom: 1rem; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fa-solid fa-list" style="font-size: 0.9rem; color: var(--text-muted);"></i>
+                Usuários Cadastrados
+            </h4>
+            <div class="table-container">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Usuário</th>
+                            <th scope="col" style="text-align: right;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in users %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 50%; background: linear-gradient(135deg, var(--accent-sata), var(--accent-nvme)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: white;" aria-hidden="true">
+                                        {{ u.username[:2].upper() }}
+                                    </div>
+                                    <span style="font-weight: 500;">{{ u.username }}</span>
+                                    {% if u.username == session.get('username') %}
+                                    <span class="badge badge-sata" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;">Você</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td style="text-align: right;">
+                                <div class="btn-group" style="justify-content: flex-end; gap: 0.5rem;">
+                                    <button class="btn btn-secondary btn-sm" onclick="editUser('{{ u.id }}', '{{ u.username }}')" aria-label="Editar usuário {{ u.username }}">
+                                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
+                                    </button>
+                                    {% if u.username != session.get('username') %}
+                                    <form action="{{ url_for('delete_user', user_id=u.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ u.username }}?')">
+                                        <button type="submit" class="btn btn-danger btn-sm" style="padding: 0.5rem 0.75rem;" aria-label="Excluir usuário {{ u.username }}">
+                                            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Action Form -->
+        <div id="userActionContainer" aria-live="polite">
+            <!-- Add User Form -->
+            <div id="addUserBox">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-user-plus" style="font-size: 0.9rem; color: var(--success);" aria-hidden="true"></i>
+                    Cadastrar Novo Usuário
+                </h4>
+                <form action="{{ url_for('add_user') }}" method="POST" autocomplete="off" role="form" aria-label="Formulário de Cadastro de Novo Usuário">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="reg_username" class="form-label">Nome de Usuário</label>
+                        <input type="text" id="reg_username" name="username" class="form-input" placeholder="Ex: joao_silva" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="reg_password" class="form-label">Senha</label>
+                        <input type="password" id="reg_password" name="password" class="form-input" placeholder="Digite a senha" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="reg_confirm_password" class="form-label">Confirmar Senha</label>
+                        <input type="password" id="reg_confirm_password" name="confirm_password" class="form-input" placeholder="Confirme a senha" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%;">
+                        <i class="fa-solid fa-check" aria-hidden="true"></i> Cadastrar Usuário
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Edit User Form (Hidden by default) -->
+            <div id="editUserBox" style="display: none;">
+                <h4 style="margin-bottom: 1rem; font-size: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-user-pen" style="font-size: 0.9rem; color: var(--warning);" aria-hidden="true"></i>
+                    Editar Usuário: <span id="editTitleName" style="color: var(--primary);">admin</span>
+                </h4>
+                <form id="editUserForm" action="" method="POST" autocomplete="off" role="form" aria-label="Formulário de Edição de Usuário">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="edit_username" class="form-label">Nome de Usuário</label>
+                        <input type="text" id="edit_username" name="username" class="form-input" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="edit_password" class="form-label">Nova Senha (deixe em branco para manter atual)</label>
+                        <input type="password" id="edit_password" name="password" class="form-input" placeholder="Digite a nova senha se desejar alterar">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="edit_confirm_password" class="form-label">Confirmar Nova Senha</label>
+                        <input type="password" id="edit_confirm_password" name="confirm_password" class="form-input" placeholder="Confirme a nova senha">
+                    </div>
+                    <div class="btn-group" style="width: 100%;">
+                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()" aria-label="Cancelar edição de usuário">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">
+                            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // User management helpers
+    function editUser(id, username) {
+        document.getElementById('addUserBox').style.display = 'none';
+        
+        const editBox = document.getElementById('editUserBox');
+        editBox.style.display = 'block';
+        
+        document.getElementById('editTitleName').textContent = username;
+        document.getElementById('edit_username').value = username;
+        document.getElementById('edit_password').value = '';
+        document.getElementById('edit_confirm_password').value = '';
+        
+        // Update form action dynamically
+        document.getElementById('editUserForm').action = '/user/edit/' + id;
+        
+        // Scroll smoothly to form box if on mobile
+        document.getElementById('userActionContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    function cancelEdit() {
+        document.getElementById('editUserBox').style.display = 'none';
+        document.getElementById('addUserBox').style.display = 'block';
+    }
+    
+    // Add validation to form submits for password matching
+    document.addEventListener('DOMContentLoaded', function() {
+        const addForm = document.querySelector('#addUserBox form');
+        if (addForm) {
+            addForm.addEventListener('submit', function(e) {
+                const p = document.getElementById('reg_password').value;
+                const cp = document.getElementById('reg_confirm_password').value;
+                if (p !== cp) {
+                    e.preventDefault();
+                    alert('As senhas não coincidem para o novo usuário.');
+                }
+            });
+        }
+
+        const editForm = document.getElementById('editUserForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                const p = document.getElementById('edit_password').value;
+                const cp = document.getElementById('edit_confirm_password').value;
+                if (p && p !== cp) {
+                    e.preventDefault();
+                    alert('As senhas não coincidem para a alteração de senha.');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

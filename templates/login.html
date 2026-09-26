@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Login - StockFlow{% endblock %}
+
+{% block login_content %}
+<div class="login-body">
+    <div class="login-container">
+        <div class="login-header">
+            <h1>StockFlow</h1>
+            <p>Controle de Estoque de SSDs</p>
+        </div>
+        
+        <!-- Flash Messages for Login Page -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert-banner alert-banner-{{ category }}" id="login-alert-{{ loop.index }}" style="margin-bottom: 1.5rem;">
+                        <div class="alert-message">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            <span style="font-size: 0.85rem;">{{ message }}</span>
+                        </div>
+                        <button class="alert-close" onclick="document.getElementById('login-alert-{{ loop.index }}').remove()">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('login') }}" method="POST" autocomplete="off" role="form" aria-label="Formulário de Login">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label for="username" class="form-label">Usuário</label>
+                <div style="position: relative;">
+                    <i class="fa-solid fa-user" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;" aria-hidden="true"></i>
+                    <input type="text" id="username" name="username" class="form-input" style="padding-left: 2.5rem;" placeholder="Digite seu usuário" required>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label for="password" class="form-label">Senha</label>
+                <div style="position: relative;">
+                    <i class="fa-solid fa-lock" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;" aria-hidden="true"></i>
+                    <input type="password" id="password" name="password" class="form-input" style="padding-left: 2.5rem; padding-right: 2.5rem;" placeholder="Digite sua senha" required>
+                    <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; cursor: pointer; z-index: 5;" role="button" tabindex="0" aria-label="Mostrar senha"></i>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.9rem;">
+                <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                Acessar Sistema
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.querySelector('#togglePassword');
+        const passwordInput = document.querySelector('#password');
+        
+        function handleToggle() {
+            const isPassword = passwordInput.getAttribute('type') === 'password';
+            const type = isPassword ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            // Toggle the eye slash icon
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+            
+            // Toggle accessibility label
+            togglePassword.setAttribute('aria-label', isPassword ? 'Ocultar senha' : 'Mostrar senha');
+        }
+
+        togglePassword.addEventListener('click', handleToggle);
+        togglePassword.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleToggle();
+            }
+        });
+    });
+</script>
+{% endblock %}
